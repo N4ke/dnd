@@ -1,0 +1,14 @@
+**/__pycache__
+.pytest_cache/
+.qodo/
+.venv/
+database/
+tests/
+
+
+*.gguf
+*.pdf
+*.txt
+pytest.ini
+.env
+research_notebook.ipynb
