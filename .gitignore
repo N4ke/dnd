@@ -1,14 +1,15 @@
-**/__pycache__
+**/__pycache__/
 .pytest_cache/
 .qodo/
 .venv/
 database/
 tests/
+**/models/embeddings/
 
 
 *.gguf
 *.pdf
 *.txt
+*.ipynb
 pytest.ini
 .env
-research_notebook.ipynb
