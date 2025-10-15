@@ -12,6 +12,8 @@ class Settings(BaseSettings):
     DATA_DIR: Path = BASE_DIR / "data"
     DATABASE_DIR: Path = BASE_DIR / "database"
     MODELS_DIR: Path = BASE_DIR / "models"
+    EMBEDDINGS_DIR: Path = MODELS_DIR / "embeddings"
+    LLMs_DIR: Path = MODELS_DIR / "llms"
     
     # Models
     MAIN_LLM: str = "saiga_nemo_12b.Q4_K_M_gguf"
@@ -21,21 +23,21 @@ class Settings(BaseSettings):
 
     RAG_SYSTEMS: Dict[str, RAGConfig] = {
         "rules": RAGConfig(
-            connection_args={"uri": str(DATABASE_DIR / "rules.db")},
+            connection_args={"host": "standalone", "port": "19530"},
             index_name="rules",
-            embedding_model=str(MODELS_DIR /"embeddings/paraphrase-multilingual-mpnet-base-v2"),
+            embedding_model=str(EMBEDDINGS_DIR / "paraphrase-multilingual-mpnet-base-v2"),
             embedding_dim=768
         ),
         "lore": RAGConfig(
-            connection_args={"uri": str(DATABASE_DIR / "lore.db")},
+            connection_args={"host": "standalone", "port": "19530"},
             index_name="lore",
-            embedding_model=str(MODELS_DIR / "embeddings/paraphrase-multilingual-mpnet-base-v2"),
+            embedding_model=str(EMBEDDINGS_DIR / "paraphrase-multilingual-mpnet-base-v2"),
             embedding_dim=768
         )
     }
     
     LLM: LLMConfig = LLMConfig(
-        model_path=str(MODELS_DIR / "llms/saiga_nemo_12b.Q4_K_M.gguf"),
+        model_path=str(LLMs_DIR / "saiga_nemo_12b.Q4_K_M.gguf"),
         n_ctx=4096,
         n_gpu_layers=20
     )

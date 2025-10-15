@@ -5,34 +5,32 @@ from app.rag.rag_manager import RAGOrchestrator
 from app.api.routers import chat, context, rag
 from app.api.services.llm_service import LLMService
 from app.config.settings import settings
+from app.rag.utils.get_embeddings import get_embeddings
 from redis.asyncio import Redis
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    from langchain_huggingface import HuggingFaceEmbeddings
-    
     app.state.redis = Redis.from_url(settings.REDIS_URL)
     app.state.llm = LLMService.get_instance(settings)
     
-    embeddings = HuggingFaceEmbeddings(
-        model_name=settings.EMBEDDING_MODEL,
-        model_kwargs={"device": "cuda"},
-        cache_folder=str(settings.MODELS_DIR / "embeddings")
-    )
+    embeddings = get_embeddings()
     
     app.state.rag = RAGOrchestrator()
-    for rag_name, rag_config in settings.RAG_SYSTEMS.items():
-        app.state.rag.add_system(rag_config, embeddings)
+    rules_config = settings.RAG_SYSTEMS["rules"]
+    app.state.rag.add_system(rules_config, embeddings)
     
     yield
     
     await app.state.redis.close()
     
-    del app.state.llm
+    from pymilvus import connections
+    connections.disconnect("default")
+    
+    del app.state.llm.llm
 
 app = FastAPI(
-    title="D&D AI Master",
+    title="D&D AI Assistent",
     lifespan=lifespan
 )
 
@@ -50,4 +48,4 @@ app.include_router(rag.router)
 
 @app.get("/")
 async def root():
-    return {"message": "D&D AI Master is running"}
+    return {"message": "D&D AI Assistent is running"}

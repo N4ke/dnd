@@ -1,7 +1,7 @@
 from typing import List
 from langchain_core.documents import Document
 from langchain_community.document_loaders import PyPDFLoader, TextLoader
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.text_splitter import SpacyTextSplitter
 from app.config.schemas import RAGConfig
 from app.rag.utils.metadata import apply_metadata_rules
 
@@ -12,10 +12,11 @@ class DocumentProcessor:
         self.splitter = self._create_splitter()
     
     def _create_splitter(self):
-        return RecursiveCharacterTextSplitter(
+        return SpacyTextSplitter(
+            pipeline="ru_core_news_sm",
             chunk_size=self.config.chunk_size,
-            chunk_overlap=min(self.config.chunk_overlap, self.config.chunk_size // 4),
-            separators=["\n\n", "。", "! ", "? ", "\n", " "]
+            chunk_overlap=self.config.chunk_overlap,
+            separator=" "
         )
     
     def process_file(self, file_path: str) -> List[Document]:

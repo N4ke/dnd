@@ -8,7 +8,6 @@ router = APIRouter(prefix="/chat")
 
 @router.websocket("/ws")
 async def chat_websocket(websocket: WebSocket):
-    
     await websocket.accept()
     llm_service = LLMService.get_instance(settings)
     
@@ -16,12 +15,10 @@ async def chat_websocket(websocket: WebSocket):
         while True:
             data = await websocket.receive_json()
             request = ChatRequest(**data)
-            async for chunk in llm_service.stream_response(request):
-                await websocket.send_json(chunk.model_dump())
+            response = await llm_service.process_request(request)
+            await websocket.send_json(response.model_dump())
     except WebSocketDisconnect:
         pass
-    finally:
-        await websocket.close()
 
 @router.post("/ask")
 async def chat_ask(request: ChatRequest) -> ChatResponse:

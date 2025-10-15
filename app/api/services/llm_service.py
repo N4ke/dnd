@@ -1,8 +1,9 @@
 from typing import AsyncGenerator, Optional
 from llama_cpp import Llama
-from torch.cuda import empty_cache
 from app.config.settings import Settings
 from app.api.schemas.chat import ChatResponse
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 
 class LLMService:
@@ -16,8 +17,14 @@ class LLMService:
             model_path=settings.LLM.model_path,
             n_gpu_layers=settings.LLM.n_gpu_layers,
             n_ctx=settings.LLM.n_ctx,
-            verbose=True
+            verbose=False
         )
+        
+        self.executor = ThreadPoolExecutor(max_workers=1)
+            
+    async def _run_in_executor(self, func, *args, **kwargs):
+        loop = asyncio.get_event_loop()
+        return await loop.run_in_executor(self.executor, lambda: func(*args, **kwargs))
         
     @classmethod
     def get_instance(cls, settings: Settings) -> "LLMService":
@@ -25,26 +32,12 @@ class LLMService:
             cls._instance = cls(settings)
         return cls._instance
     
-    async def stream_response(self, request) -> AsyncGenerator[ChatResponse, None]:
-        response = self.llm.create_chat_completion(
-            messages=[{"role": "user", "content": request.message}],
-            stream=True,
-            temperature=request.temperature
-        )
-        
-        for chunk in response:
-            content = chunk["choices"][0]["delta"].get("content", "")
-            yield ChatResponse(content=content, is_final=False)
-        
-        yield ChatResponse(content="", is_final=True)
-    
     async def process_request(self, request) -> ChatResponse:
-        response = self.llm.create_chat_completion(
+        response = await self._run_in_executor(
+            self.llm.create_chat_completion,
             messages=[{"role": "user", "content": request.message}],
             temperature=request.temperature
         )
-        
-        empty_cache()
         
         return ChatResponse(
             content=response["choices"][0]["message"]["content"],

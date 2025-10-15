@@ -8,15 +8,21 @@ class RAGConfig(BaseModel):
     embedding_model: str
     embedding_dim: int
     index_params: Dict[str, Any] = Field(
-        default_factory=lambda: {"index_type": "HNSW", "metric_type": "cosine"}
+        default_factory=lambda: {
+            "index_type": "HNSW",
+            "metric_type": "COSINE",
+            "params": {
+                "M": 16,
+                "efConstruction": 200
+            }
+        }
     )
-    drop_old: bool = False
-    metric: str = "cosine"
-    chunk_size: int = 800
+    drop_old: bool = True
+    chunk_size: int = 512
     chunk_overlap: int = 200
     metadata_rules: Dict = {}
-    document_types: List[str] = ["pdf", "md", "txt"]
-    top_k: int = 3
+    document_types: List[str] = ["pdf", "txt"]
+    top_k: int = 5
 
 
 class LLMConfig(BaseModel):

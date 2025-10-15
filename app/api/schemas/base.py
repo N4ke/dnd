@@ -3,7 +3,7 @@ from typing import Dict, Any
 
 
 class APIBase(BaseModel):
-    message: str = "Success"
+    message: str
     details: Dict[str, Any] = {}
 
 class ContextState(APIBase):

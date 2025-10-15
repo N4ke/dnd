@@ -12,9 +12,10 @@ class RAGSystem:
         self.processor = DocumentProcessor(config)
         self.vector_db = MilvusManager(config, embeddings)
     
-    def ingest(self, file_path: str):
+    def ingest(self, file_path: str) -> int:
         docs = self.processor.process_file(file_path)
         self.vector_db.upsert_documents(docs)
+        return len(docs)
     
     def retrieve(self, query: str, **filters) -> List[Document]:
         return self.vector_db.query(query, filters)
@@ -23,10 +24,10 @@ class RAGSystem:
 class RAGOrchestrator:
     def __init__(self):
         self.systems: Dict[str, RAGSystem] = {}
-    
+
     def add_system(self, config: RAGConfig, embeddings):
         self.systems[config.index_name] = RAGSystem(config, embeddings)
-    
+
     def get_system(self, name: str) -> RAGSystem:
         return self.systems[name]
 

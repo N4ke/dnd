@@ -13,7 +13,8 @@ class MilvusManager:
             collection_name=config.index_name,
             index_params=config.index_params,
             drop_old=config.drop_old,
-            consistency_level="Session"
+            consistency_level="Session",
+            auto_id=True
         )
 
     def upsert_documents(self, documents: List[Document], batch_size: int=64):
